@@ -1,7 +1,270 @@
-<html>
-  <head>
-    <title> Fintech 14 Hompage</title>
-  </head>
-  <body>
-    <h1>Welcome th Fintech 14 Hompage</h1>
-  </body>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fintech 14 Homepage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --ink: #172033; --muted: #5a6478;
+    --line: #d9dde5; --accent: #0a4d8c; --accent-ink: #ffffff; --soft: #e6eef7;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101623; --surface: #182033; --ink: #e8ecf4; --muted: #a2adc2;
+      --line: #2b3550; --accent: #6aa8e8; --accent-ink: #101623; --soft: #1f2c47;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101623; --surface: #182033; --ink: #e8ecf4; --muted: #a2adc2;
+    --line: #2b3550; --accent: #6aa8e8; --accent-ink: #101623; --soft: #1f2c47;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.7; font-size: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+  nav { border-bottom: 1px solid var(--line); background: var(--surface); }
+  nav .wrap { display: flex; gap: 20px; overflow-x: auto; padding-top: 12px; padding-bottom: 12px; white-space: nowrap; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  nav a:hover, nav a:focus-visible { color: var(--accent); text-decoration: underline; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  header.hero { padding: 56px 0 40px; }
+  .hero p.org { margin: 0 0 8px; color: var(--muted); }
+  .hero h1 { margin: 0 0 20px; font-size: clamp(30px, 6vw, 48px); line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0; border: 1px solid var(--line); background: var(--surface); }
+  .facts div { padding: 16px 18px; border-right: 1px solid var(--line); }
+  .facts div:last-child { border-right: 0; }
+  .facts dt { font-size: 13px; color: var(--muted); }
+  .facts dd { margin: 2px 0 0; font-size: 20px; font-weight: 700; }
+  .facts { margin: 0; }
+
+  section { padding: 36px 0; border-top: 1px solid var(--line); }
+  h2 { margin: 0 0 18px; font-size: 24px; letter-spacing: -0.01em; }
+  h3 { margin: 0 0 8px; font-size: 18px; }
+  .note { color: var(--muted); font-size: 14px; }
+
+  /* 모집일정: 실제 순서가 있는 내용이므로 타임라인 사용 */
+  ol.timeline { list-style: none; margin: 0; padding: 0 0 0 22px; border-left: 3px solid var(--line); }
+  ol.timeline li { position: relative; padding: 0 0 22px 18px; }
+  ol.timeline li::before {
+    content: ""; position: absolute; left: -31px; top: 8px; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--bg); border: 3px solid var(--accent);
+  }
+  ol.timeline li.done { color: var(--muted); }
+  ol.timeline li.done::before { background: var(--accent); }
+  .timeline .step { font-weight: 600; }
+  .timeline .date { display: block; }
+  .badge { display: inline-block; margin-left: 8px; padding: 0 8px; font-size: 12px; border-radius: 4px; background: var(--soft); color: var(--accent); }
+
+  /* 교육과정 탭 */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tabs button {
+    font: inherit; padding: 10px 16px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); cursor: pointer; border-radius: 6px;
+  }
+  .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .panel { background: var(--surface); border: 1px solid var(--line); padding: 22px; border-radius: 6px; }
+  .panel[hidden] { display: none; }
+  .subjects { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px 18px; }
+  .subjects li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  ul.plain { margin: 0; padding-left: 20px; }
+  ul.plain li { margin-bottom: 8px; }
+
+  .teachers { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; list-style: none; padding: 0; margin: 0; }
+  .teachers li { background: var(--surface); border: 1px solid var(--line); padding: 12px 14px; border-radius: 6px; }
+  .teachers strong { display: block; }
+  .teachers span { color: var(--muted); font-size: 14px; }
+
+  .contact dl { display: grid; grid-template-columns: 90px 1fr; gap: 6px 12px; margin: 0; }
+  .contact dt { color: var(--muted); }
+  .contact dd { margin: 0; overflow-wrap: anywhere; }
+  a { color: var(--accent); }
+  footer { padding: 28px 0 40px; border-top: 1px solid var(--line); }
+  button.theme { font: inherit; font-size: 14px; padding: 6px 12px; margin-top: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<nav aria-label="페이지 메뉴">
+  <div class="wrap">
+    <a href="#schedule">모집일정</a>
+    <a href="#curriculum">교육내용</a>
+    <a href="#eligibility">지원자격·혜택</a>
+    <a href="#teachers">강사소개</a>
+    <a href="#contact">문의처</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="org">서울대학교 KDT</p>
+    <h1>빅데이터 AI 핀테크<br>고급 전문가 과정 14기</h1>
+    <dl class="facts">
+      <div><dt>교육기간</dt><dd>7개월, 총 1040시간</dd></div>
+      <div><dt>선발 인원</dt><dd>45명 선발 예정</dd></div>
+      <div><dt>자부담금</dt><dd>60만원 (수업료 90% 지원)</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="schedule">
+    <h2>모집일정</h2>
+    <ol class="timeline" id="timeline">
+      <li data-end="2026-09-20"><span class="step">서류 접수</span><span class="date">9월 1일(화) ~ 9월 20일(일)</span></li>
+      <li data-end="2026-09-29"><span class="step">면접 심사</span><span class="date">9월 28일(월) ~ 9월 29일(화)</span></li>
+      <li data-end="2026-10-01"><span class="step">최종 합격자 발표</span><span class="date">10월 1일(목)</span></li>
+      <li data-end="2026-10-13"><span class="step">교육 개시</span><span class="date">10월 13일(화) 오전 8시 30분</span></li>
+    </ol>
+    <p class="note">교육기간: 2026년 10월 13일(화) ~ 2027년 5월 21일(금)</p>
+    <p class="note">서류합격자 발표 및 최종합격자 발표는 합격자에 한하여 공지됩니다. 최종합격자도 교육 개시일 2일 전까지 KDT 패스 미발급, 자부담금 미납, 수강 신청을 하지 않은 경우 등은 등록이 불가하여 합격이 취소됩니다.</p>
+    <h3>과정설명회</h3>
+    <p>2026년 9월 14일(월) 오후 3시, 서울대학교 우석경제관(223동) 504호<br>
+    Zoom ID 863 4649 2666 (PW: 26091400)</p>
+    <p class="note">모집 일정 및 교강사 등 주요 내용은 과정 운영 사정에 따라 변동될 수 있습니다.</p>
+  </section>
+
+  <section id="curriculum">
+    <h2>교육내용</h2>
+    <div class="tabs" role="tablist" aria-label="교육 과정 단계">
+      <button role="tab" id="tab-theory" aria-selected="true" aria-controls="panel-theory">이론 및 실습 (4개월)</button>
+      <button role="tab" id="tab-project" aria-selected="false" aria-controls="panel-project">프로젝트 실습 (3개월)</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-theory" aria-labelledby="tab-theory">
+      <h3>이론 및 실습 교육 과정</h3>
+      <p>4개월, 주 4일 전일 교육, 560시간</p>
+      <ul class="subjects">
+        <li>AI 수학</li><li>자연어처리</li><li>AI응용</li>
+        <li>핀테크 제품, 서비스 개발 방법론</li><li>고급재무론</li><li>알고리듬 트레이딩</li>
+        <li>빅데이터 핀테크 AI 응용사례</li><li>핀테크 서비스와 법</li><li>통계 데이터사이언스</li>
+        <li>파이선 프로그래밍</li><li>데이터베이스</li><li>기계학습과 딥러닝</li>
+        <li>시각화, 웹 개발</li><li>블록체인</li><li>핀테크와 암호</li>
+        <li>디지털 화폐와 금융, 인슈어테크</li>
+      </ul>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-project" aria-labelledby="tab-project" hidden>
+      <h3>프로젝트 실습 과정</h3>
+      <p>3개월, 주 5일 전일 실습, 480시간</p>
+      <p>빅데이터/AI 핀테크 관련 첨단 기술 기업과 연계하여 실무 프로젝트를 진행합니다.</p>
+    </div>
+  </section>
+
+  <section id="eligibility">
+    <h2>지원자격·혜택</h2>
+    <div class="two">
+      <div>
+        <h3>교육대상</h3>
+        <p>대학/대학원 졸업자 혹은 2년 이내 졸업예정자로서 빅데이터, AI, 핀테크 등 관련분야에 진출(취업, 창업, 진학 등)하려는 분</p>
+        <h3>지원자격</h3>
+        <ul class="plain">
+          <li>국민내일배움카드 발급 가능자 (‘국민내일배움카드 운영규정’ 제4조에 의거한 지원대상자)</li>
+          <li>대학/대학원 졸업자(학사학위 이상 소지자) 혹은 졸업 예정자 (2년 이내, 2028년 8월 이전 졸업)</li>
+          <li>본 과정을 교육기간 동안 전일제(Full-Time)로 이수 가능한 분 (정부 훈련비를 받는 다른 교육과정에 참여하는 분들은 지원할 수 없습니다.)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>혜택</h3>
+        <p>수업료 90% 지원(자부담금 60만원) 및 과정 교육기간 동안 매월 훈련장려금 지급 (훈련생 1인당 약 2500만원 이상의 교육비 투입)</p>
+        <h3>지원방법</h3>
+        <p>QR코드 또는 홈페이지 접속 후 온라인 지원서 제출</p>
+        <h3>교육장소</h3>
+        <p>서울대학교 관악캠퍼스 호암교수회관 등</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="teachers">
+    <h2>강사소개</h2>
+    <p>관련 분야별 국내 최고의 교수진 및 실무 전문가로 구성된 강사진이 금융분야 빅데이터 분석 및 핀테크 산업 관련 기술에 대해 강의합니다.</p>
+    <ul class="teachers">
+      <li><strong>류근관 명예교수</strong><span>서울대학교 경제학부 · 제 18대 통계청장 · 유엔 통계위원회 의장단</span></li>
+      <li><strong>이재욱 교수</strong><span>서울대학교 산업공학과</span></li>
+      <li><strong>김명환 명예교수</strong><span>서울대학교 수리과학부</span></li>
+      <li><strong>박재식 교수</strong><span>서울대학교 컴퓨터공학부</span></li>
+      <li><strong>신효필 교수</strong><span>서울대학교 언어학과</span></li>
+      <li><strong>김영식 교수</strong><span>서울대학교 경제학부</span></li>
+      <li><strong>정순섭 교수</strong><span>서울대학교 로스쿨</span></li>
+      <li><strong>김정욱 교수</strong><span>서울대학교 경영대학</span></li>
+      <li><strong>이인아 교수</strong><span>서울대학교 뇌인지과학과</span></li>
+      <li><strong>장희수 교수</strong><span>숭실대학교 금융학부</span></li>
+      <li><strong>박우진 교수</strong></li>
+      <li><strong>이훈희 교수</strong></li>
+      <li><strong>김태섭 교수</strong></li>
+      <li><strong>김형신 교수</strong></li>
+      <li><strong>박현우 교수</strong></li>
+      <li><strong>이상원 교수</strong></li>
+      <li><strong>박소정 교수</strong></li>
+    </ul>
+    <p class="note">관련 분야 실무 국내 최고 전문가, 빅데이터 핀테크 분야 창업가 및 변호사 등. 본 강사진은 과정 및 강사 사정에 의해 차후 변동될 수 있습니다.</p>
+  </section>
+
+  <section id="contact" class="contact">
+    <h2>문의처</h2>
+    <p>서울대학교 KDT 과정 사무국</p>
+    <dl>
+      <dt>전화</dt><dd><a href="tel:031-5176-2304">031-5176-2304</a></dd>
+      <dt>이메일</dt><dd><a href="mailto:snufin99@gmail.com">snufin99@gmail.com</a></dd>
+      <dt>홈페이지</dt><dd><a href="https://www.snukdt.com" rel="noopener">www.snukdt.com</a></dd>
+    </dl>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="note">이 페이지는 「2026 서울대학교 빅데이터 AI 핀테크 고급 전문가 과정 14기」 포스터 내용을 바탕으로 만든 학습용 예시입니다. 최신 정보는 공식 홈페이지에서 확인하세요.</p>
+    <button class="theme" id="themeBtn" type="button">화면 모드 바꾸기</button>
+  </div>
+</footer>
+
+<script>
+  // 1) 교육과정 탭 전환
+  var tabs = document.querySelectorAll('[role="tab"]');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) {
+        var on = (t === tab);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+    });
+  });
+
+  // 2) 모집일정: 오늘 날짜 기준으로 지난 단계 표시
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  document.querySelectorAll('#timeline li').forEach(function (li) {
+    var end = new Date(li.dataset.end + 'T00:00:00');
+    if (end < today) {
+      li.classList.add('done');
+      var b = document.createElement('span');
+      b.className = 'badge';
+      b.textContent = '종료';
+      li.querySelector('.step').appendChild(b);
+    }
+  });
+
+  // 3) 화면 모드(밝게/어둡게) 전환
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var root = document.documentElement;
+    var dark = root.getAttribute('data-theme') === 'dark' ||
+      (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+</script>
+</body>
+</html>
