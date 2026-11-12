@@ -1,270 +1,647 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fintech 14 Homepage</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
-<style>
-  :root {
-    --bg: #f6f7f9; --surface: #ffffff; --ink: #172033; --muted: #5a6478;
-    --line: #d9dde5; --accent: #0a4d8c; --accent-ink: #ffffff; --soft: #e6eef7;
-    box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #101623; --surface: #182033; --ink: #e8ecf4; --muted: #a2adc2;
-      --line: #2b3550; --accent: #6aa8e8; --accent-ink: #101623; --soft: #1f2c47;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #101623; --surface: #182033; --ink: #e8ecf4; --muted: #a2adc2;
-    --line: #2b3550; --accent: #6aa8e8; --accent-ink: #101623; --soft: #1f2c47;
-  }
-  *, *::before, *::after { box-sizing: inherit; }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    line-height: 1.7; font-size: 16px;
-  }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
-  nav { border-bottom: 1px solid var(--line); background: var(--surface); }
-  nav .wrap { display: flex; gap: 20px; overflow-x: auto; padding-top: 12px; padding-bottom: 12px; white-space: nowrap; }
-  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
-  nav a:hover, nav a:focus-visible { color: var(--accent); text-decoration: underline; }
-  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAME RANKING & MARKET - 실시간 게임 순위 및 주가</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 아이콘 로드 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Noto Sans KR & Oswald (숫자/순위 강조용) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        display: ['"Oswald"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            black: '#0d0d0d',
+                            dark: '#141414',
+                            card: '#1a1a1a',
+                            border: '#2a2a2a',
+                            red: '#e50914',
+                            redHover: '#ff1f2c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-  header.hero { padding: 56px 0 40px; }
-  .hero p.org { margin: 0 0 8px; color: var(--muted); }
-  .hero h1 { margin: 0 0 20px; font-size: clamp(30px, 6vw, 48px); line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; }
-  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0; border: 1px solid var(--line); background: var(--surface); }
-  .facts div { padding: 16px 18px; border-right: 1px solid var(--line); }
-  .facts div:last-child { border-right: 0; }
-  .facts dt { font-size: 13px; color: var(--muted); }
-  .facts dd { margin: 2px 0 0; font-size: 20px; font-weight: 700; }
-  .facts { margin: 0; }
+    <style>
+        /* 기본 다크 테마 및 스크롤바 커스텀 */
+        body {
+            background-color: #0d0d0d;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
 
-  section { padding: 36px 0; border-top: 1px solid var(--line); }
-  h2 { margin: 0 0 18px; font-size: 24px; letter-spacing: -0.01em; }
-  h3 { margin: 0 0 8px; font-size: 18px; }
-  .note { color: var(--muted); font-size: 14px; }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e50914;
+        }
 
-  /* 모집일정: 실제 순서가 있는 내용이므로 타임라인 사용 */
-  ol.timeline { list-style: none; margin: 0; padding: 0 0 0 22px; border-left: 3px solid var(--line); }
-  ol.timeline li { position: relative; padding: 0 0 22px 18px; }
-  ol.timeline li::before {
-    content: ""; position: absolute; left: -31px; top: 8px; width: 14px; height: 14px;
-    border-radius: 50%; background: var(--bg); border: 3px solid var(--accent);
-  }
-  ol.timeline li.done { color: var(--muted); }
-  ol.timeline li.done::before { background: var(--accent); }
-  .timeline .step { font-weight: 600; }
-  .timeline .date { display: block; }
-  .badge { display: inline-block; margin-left: 8px; padding: 0 8px; font-size: 12px; border-radius: 4px; background: var(--soft); color: var(--accent); }
+        /* 주가 전광판 (Ticker) 무한 롤링 애니메이션 */
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background-color: #141414;
+            border-bottom: 1px solid #262626;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
 
-  /* 교육과정 탭 */
-  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .tabs button {
-    font: inherit; padding: 10px 16px; border: 1px solid var(--line); background: var(--surface);
-    color: var(--ink); cursor: pointer; border-radius: 6px;
-  }
-  .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .panel { background: var(--surface); border: 1px solid var(--line); padding: 22px; border-radius: 6px; }
-  .panel[hidden] { display: none; }
-  .subjects { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px 18px; }
-  .subjects li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+        .ticker {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 35s linear infinite;
+        }
 
-  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-  ul.plain { margin: 0; padding-left: 20px; }
-  ul.plain li { margin-bottom: 8px; }
+        .ticker:hover {
+            animation-play-state: paused;
+        }
 
-  .teachers { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; list-style: none; padding: 0; margin: 0; }
-  .teachers li { background: var(--surface); border: 1px solid var(--line); padding: 12px 14px; border-radius: 6px; }
-  .teachers strong { display: block; }
-  .teachers span { color: var(--muted); font-size: 14px; }
+        @keyframes ticker {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+            100% {
+                transform: translate3d(-100%, 0, 0);
+            }
+        }
 
-  .contact dl { display: grid; grid-template-columns: 90px 1fr; gap: 6px 12px; margin: 0; }
-  .contact dt { color: var(--muted); }
-  .contact dd { margin: 0; overflow-wrap: anywhere; }
-  a { color: var(--accent); }
-  footer { padding: 28px 0 40px; border-top: 1px solid var(--line); }
-  button.theme { font: inherit; font-size: 14px; padding: 6px 12px; margin-top: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; cursor: pointer; }
-</style>
+        /* 카드 호버 이펙트 */
+        .game-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .game-card:hover {
+            transform: translateY(-6px);
+            border-color: #e50914;
+            box-shadow: 0 10px 30px -10px rgba(229, 9, 20, 0.35);
+        }
+
+        /* 프로그레스 바 애니메이션 */
+        .progress-bar-fill {
+            transition: width 1s ease-out;
+        }
+    </style>
 </head>
-<body>
+<body class="antialiased selection:bg-brand-red selection:text-white">
 
-<nav aria-label="페이지 메뉴">
-  <div class="wrap">
-    <a href="#schedule">모집일정</a>
-    <a href="#curriculum">교육내용</a>
-    <a href="#eligibility">지원자격·혜택</a>
-    <a href="#teachers">강사소개</a>
-    <a href="#contact">문의처</a>
-  </div>
-</nav>
-
-<header class="hero">
-  <div class="wrap">
-    <p class="org">서울대학교 KDT</p>
-    <h1>빅데이터 AI 핀테크<br>고급 전문가 과정 14기</h1>
-    <dl class="facts">
-      <div><dt>교육기간</dt><dd>7개월, 총 1040시간</dd></div>
-      <div><dt>선발 인원</dt><dd>45명 선발 예정</dd></div>
-      <div><dt>자부담금</dt><dd>60만원 (수업료 90% 지원)</dd></div>
-    </dl>
-  </div>
-</header>
-
-<main class="wrap">
-
-  <section id="schedule">
-    <h2>모집일정</h2>
-    <ol class="timeline" id="timeline">
-      <li data-end="2026-09-20"><span class="step">서류 접수</span><span class="date">9월 1일(화) ~ 9월 20일(일)</span></li>
-      <li data-end="2026-09-29"><span class="step">면접 심사</span><span class="date">9월 28일(월) ~ 9월 29일(화)</span></li>
-      <li data-end="2026-10-01"><span class="step">최종 합격자 발표</span><span class="date">10월 1일(목)</span></li>
-      <li data-end="2026-10-13"><span class="step">교육 개시</span><span class="date">10월 13일(화) 오전 8시 30분</span></li>
-    </ol>
-    <p class="note">교육기간: 2026년 10월 13일(화) ~ 2027년 5월 21일(금)</p>
-    <p class="note">서류합격자 발표 및 최종합격자 발표는 합격자에 한하여 공지됩니다. 최종합격자도 교육 개시일 2일 전까지 KDT 패스 미발급, 자부담금 미납, 수강 신청을 하지 않은 경우 등은 등록이 불가하여 합격이 취소됩니다.</p>
-    <h3>과정설명회</h3>
-    <p>2026년 9월 14일(월) 오후 3시, 서울대학교 우석경제관(223동) 504호<br>
-    Zoom ID 863 4649 2666 (PW: 26091400)</p>
-    <p class="note">모집 일정 및 교강사 등 주요 내용은 과정 운영 사정에 따라 변동될 수 있습니다.</p>
-  </section>
-
-  <section id="curriculum">
-    <h2>교육내용</h2>
-    <div class="tabs" role="tablist" aria-label="교육 과정 단계">
-      <button role="tab" id="tab-theory" aria-selected="true" aria-controls="panel-theory">이론 및 실습 (4개월)</button>
-      <button role="tab" id="tab-project" aria-selected="false" aria-controls="panel-project">프로젝트 실습 (3개월)</button>
+    <!-- 1. 상단 실시간 게임회사 주가 전광판 (Stock Ticker) -->
+    <div class="ticker-wrap py-2.5 sticky top-0 z-40 shadow-md">
+        <div class="flex items-center">
+            <div class="bg-brand-red text-white text-xs font-bold px-3 py-1 ml-3 rounded flex items-center gap-1.5 shrink-0 z-10 shadow">
+                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                GAME STOCKS
+            </div>
+            <div class="overflow-hidden w-full">
+                <div class="ticker text-sm font-medium" id="stock-ticker-content">
+                    <!-- JS로 동적 생성됨 -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="panel" role="tabpanel" id="panel-theory" aria-labelledby="tab-theory">
-      <h3>이론 및 실습 교육 과정</h3>
-      <p>4개월, 주 4일 전일 교육, 560시간</p>
-      <ul class="subjects">
-        <li>AI 수학</li><li>자연어처리</li><li>AI응용</li>
-        <li>핀테크 제품, 서비스 개발 방법론</li><li>고급재무론</li><li>알고리듬 트레이딩</li>
-        <li>빅데이터 핀테크 AI 응용사례</li><li>핀테크 서비스와 법</li><li>통계 데이터사이언스</li>
-        <li>파이선 프로그래밍</li><li>데이터베이스</li><li>기계학습과 딥러닝</li>
-        <li>시각화, 웹 개발</li><li>블록체인</li><li>핀테크와 암호</li>
-        <li>디지털 화폐와 금융, 인슈어테크</li>
-      </ul>
+    <!-- 2. 헤더 및 메인 타이틀 영역 -->
+    <header class="border-b border-brand-border bg-gradient-to-b from-[#181818] to-brand-black">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 border border-brand-red/30 text-brand-red text-xs font-bold mb-3">
+                        <i class="fa-solid fa-fire"></i> PC방 점유율 & 실시간 트렌드
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white">
+                        KOREA <span class="text-brand-red">GAME</span> RANKING
+                    </h1>
+                    <p class="mt-2 text-gray-400 text-sm sm:text-base max-w-2xl">
+                        대한민국 PC방 점유율, 유저 인기도 지수, 장르별 순위 및 주요 게임사 주가 동향을 한눈에 확인하고 생생한 플레이 영상을 감상하세요.
+                    </p>
+                </div>
+                
+                <!-- 요약 통계 배지 -->
+                <div class="flex gap-4 bg-brand-card p-4 rounded-xl border border-brand-border shrink-0">
+                    <div class="text-center px-2">
+                        <p class="text-xs text-gray-400">집계 기준</p>
+                        <p class="text-sm font-bold text-white mt-0.5" id="current-date">실시간 업데이트</p>
+                    </div>
+                    <div class="w-px bg-brand-border"></div>
+                    <div class="text-center px-2">
+                        <p class="text-xs text-gray-400">TOP 10 점유율 합계</p>
+                        <p class="text-sm font-bold text-brand-red mt-0.5">86.4%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. 메인 컨텐츠 영역 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- 장르 필터링 및 검색 바 -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <!-- 장르 필터 버튼 그룹 -->
+            <div class="flex flex-wrap gap-2" id="genre-filters">
+                <button data-genre="ALL" class="filter-btn active px-4 py-2 rounded-lg text-sm font-bold bg-brand-red text-white transition">
+                    전체보기
+                </button>
+                <button data-genre="AOS/MOBA" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-brand-card text-gray-300 hover:bg-neutral-800 border border-brand-border transition">
+                    AOS / MOBA
+                </button>
+                <button data-genre="FPS" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-brand-card text-gray-300 hover:bg-neutral-800 border border-brand-border transition">
+                    FPS / 슈팅
+                </button>
+                <button data-genre="RPG" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-brand-card text-gray-300 hover:bg-neutral-800 border border-brand-border transition">
+                    RPG / MMORPG
+                </button>
+                <button data-genre="SPORTS" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-brand-card text-gray-300 hover:bg-neutral-800 border border-brand-border transition">
+                    스포츠 / 레이싱
+                </button>
+            </div>
+
+            <!-- 게임명 검색 인풋 -->
+            <div class="relative w-full md:w-64">
+                <input type="text" id="search-input" placeholder="게임명 또는 개발사 검색..." 
+                    class="w-full bg-brand-card border border-brand-border text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-brand-red transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+            </div>
+        </div>
+
+        <!-- 게임 리스트 그리드 컨테이너 -->
+        <div id="game-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- JS를 통해 게임 카드들이 동적으로 렌더링 됩니다 -->
+        </div>
+
+        <!-- 검색 결과 없음 안내 -->
+        <div id="empty-state" class="hidden text-center py-20 bg-brand-card rounded-2xl border border-brand-border">
+            <i class="fa-solid fa-gamepad text-4xl text-gray-600 mb-3"></i>
+            <p class="text-lg font-bold text-gray-300">조건에 일치하는 게임이 없습니다.</p>
+            <p class="text-sm text-gray-500 mt-1">다른 장르를 선택하거나 검색어를 초기화해 보세요.</p>
+        </div>
+
+    </main>
+
+    <!-- 4. 플레이 영상 및 상세 정보 모달 (Popup) -->
+    <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4 transition-opacity">
+        <div class="bg-brand-dark border border-brand-border rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl transform transition-all" id="modal-container">
+            
+            <!-- 모달 상단 헤더 -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-brand-border bg-brand-card">
+                <div class="flex items-center gap-3">
+                    <span id="modal-rank" class="bg-brand-red text-white font-display font-bold px-2.5 py-0.5 rounded text-sm">1위</span>
+                    <h3 id="modal-title" class="text-xl font-bold text-white">게임 제목</h3>
+                    <span id="modal-genre" class="text-xs px-2.5 py-1 rounded bg-neutral-800 text-gray-300 border border-neutral-700">장르</span>
+                </div>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-white w-8 h-8 rounded-full hover:bg-neutral-800 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- 영상 플레이어 영역 (16:9 반응형 비율) -->
+            <div class="relative w-full pt-[56.25%] bg-black">
+                <iframe id="modal-video-frame" class="absolute inset-0 w-full h-full" src="" title="Game Gameplay Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <!-- 게임 상세 스펙 및 통계 영역 -->
+            <div class="p-6">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+                    <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                        <p class="text-xs text-gray-400">PC방 점유율</p>
+                        <p id="modal-share" class="text-xl font-display font-bold text-brand-red mt-1">38.5%</p>
+                    </div>
+                    <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                        <p class="text-xs text-gray-400">유저 인기도 지수</p>
+                        <p id="modal-popularity" class="text-xl font-display font-bold text-white mt-1">98 / 100</p>
+                    </div>
+                    <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                        <p class="text-xs text-gray-400">개발 / 배급사</p>
+                        <p id="modal-company" class="text-sm font-bold text-white mt-2 truncate">라이엇 게임즈</p>
+                    </div>
+                    <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                        <p class="text-xs text-gray-400">관련주 시세</p>
+                        <p id="modal-stock" class="text-sm font-bold text-emerald-400 mt-2">비상장 (텐센트)</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-gray-300 mb-1.5">게임 소개</h4>
+                    <p id="modal-desc" class="text-sm text-gray-400 leading-relaxed">
+                        게임에 대한 상세 설명이 이곳에 표시됩니다.
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="panel" role="tabpanel" id="panel-project" aria-labelledby="tab-project" hidden>
-      <h3>프로젝트 실습 과정</h3>
-      <p>3개월, 주 5일 전일 실습, 480시간</p>
-      <p>빅데이터/AI 핀테크 관련 첨단 기술 기업과 연계하여 실무 프로젝트를 진행합니다.</p>
-    </div>
-  </section>
+    <!-- 5. 푸터 -->
+    <footer class="border-t border-brand-border bg-brand-dark mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-sm">KOREA <span class="text-brand-red">GAME</span> RANKING</span>
+                <span>© 2026 All rights reserved.</span>
+            </div>
+            <p>본 페이지의 PC방 점유율 및 주가 데이터는 실시간 트렌드를 반영한 정보 제공용 데이터입니다.</p>
+        </div>
+    </footer>
 
-  <section id="eligibility">
-    <h2>지원자격·혜택</h2>
-    <div class="two">
-      <div>
-        <h3>교육대상</h3>
-        <p>대학/대학원 졸업자 혹은 2년 이내 졸업예정자로서 빅데이터, AI, 핀테크 등 관련분야에 진출(취업, 창업, 진학 등)하려는 분</p>
-        <h3>지원자격</h3>
-        <ul class="plain">
-          <li>국민내일배움카드 발급 가능자 (‘국민내일배움카드 운영규정’ 제4조에 의거한 지원대상자)</li>
-          <li>대학/대학원 졸업자(학사학위 이상 소지자) 혹은 졸업 예정자 (2년 이내, 2028년 8월 이전 졸업)</li>
-          <li>본 과정을 교육기간 동안 전일제(Full-Time)로 이수 가능한 분 (정부 훈련비를 받는 다른 교육과정에 참여하는 분들은 지원할 수 없습니다.)</li>
-        </ul>
-      </div>
-      <div>
-        <h3>혜택</h3>
-        <p>수업료 90% 지원(자부담금 60만원) 및 과정 교육기간 동안 매월 훈련장려금 지급 (훈련생 1인당 약 2500만원 이상의 교육비 투입)</p>
-        <h3>지원방법</h3>
-        <p>QR코드 또는 홈페이지 접속 후 온라인 지원서 제출</p>
-        <h3>교육장소</h3>
-        <p>서울대학교 관악캠퍼스 호암교수회관 등</p>
-      </div>
-    </div>
-  </section>
+    <!-- 자바스크립트 로직 -->
+    <script>
+        // 1. 게임회사별 실시간 주가 데이터 (전광판용)
+        const stockData = [
+            { name: "크래프톤 (KRAFTON)", code: "259960", price: "342,500", change: "+4.25%", isUp: true },
+            { name: "엔씨소프트 (NCSOFT)", code: "036570", price: "218,000", change: "-1.15%", isUp: false },
+            { name: "넥슨 (NEXON Japan)", code: "3659.T", price: "2,890 JPY", change: "+2.80%", isUp: true },
+            { name: "넷마블 (Netmarble)", code: "251270", price: "64,300", change: "+1.42%", isUp: true },
+            { name: "펄어비스 (Pearl Abyss)", code: "263750", price: "41,850", change: "-0.83%", isUp: false },
+            { name: "카카오게임즈 (Kakao Games)", code: "293490", price: "19,450", change: "+0.52%", isUp: true },
+            { name: "위메이드 (Wemade)", code: "112040", price: "45,100", change: "+3.10%", isUp: true },
+            { name: "네오위즈 (NEOWIZ)", code: "095660", price: "24,600", change: "-0.40%", isUp: false },
+            { name: "텐센트 / 라이엇 (Tencent)", code: "0700.HK", price: "412.6 HKD", change: "+1.95%", isUp: true },
+            { name: "일렉트로닉 아츠 (EA)", code: "EA", price: "148.20 USD", change: "+0.75%", isUp: true }
+        ];
 
-  <section id="teachers">
-    <h2>강사소개</h2>
-    <p>관련 분야별 국내 최고의 교수진 및 실무 전문가로 구성된 강사진이 금융분야 빅데이터 분석 및 핀테크 산업 관련 기술에 대해 강의합니다.</p>
-    <ul class="teachers">
-      <li><strong>류근관 명예교수</strong><span>서울대학교 경제학부 · 제 18대 통계청장 · 유엔 통계위원회 의장단</span></li>
-      <li><strong>이재욱 교수</strong><span>서울대학교 산업공학과</span></li>
-      <li><strong>김명환 명예교수</strong><span>서울대학교 수리과학부</span></li>
-      <li><strong>박재식 교수</strong><span>서울대학교 컴퓨터공학부</span></li>
-      <li><strong>신효필 교수</strong><span>서울대학교 언어학과</span></li>
-      <li><strong>김영식 교수</strong><span>서울대학교 경제학부</span></li>
-      <li><strong>정순섭 교수</strong><span>서울대학교 로스쿨</span></li>
-      <li><strong>김정욱 교수</strong><span>서울대학교 경영대학</span></li>
-      <li><strong>이인아 교수</strong><span>서울대학교 뇌인지과학과</span></li>
-      <li><strong>장희수 교수</strong><span>숭실대학교 금융학부</span></li>
-      <li><strong>박우진 교수</strong></li>
-      <li><strong>이훈희 교수</strong></li>
-      <li><strong>김태섭 교수</strong></li>
-      <li><strong>김형신 교수</strong></li>
-      <li><strong>박현우 교수</strong></li>
-      <li><strong>이상원 교수</strong></li>
-      <li><strong>박소정 교수</strong></li>
-    </ul>
-    <p class="note">관련 분야 실무 국내 최고 전문가, 빅데이터 핀테크 분야 창업가 및 변호사 등. 본 강사진은 과정 및 강사 사정에 의해 차후 변동될 수 있습니다.</p>
-  </section>
+        // 2. 컴퓨터 게임 순위 및 상세 데이터
+        const gamesData = [
+            {
+                rank: 1,
+                rankChange: 0, // 0: 유지, 양수: 상승, 음수: 하락
+                title: "리그 오브 레전드 (League of Legends)",
+                genre: "AOS/MOBA",
+                company: "라이엇 게임즈",
+                stockInfo: "텐센트 (0700.HK) ▲1.95%",
+                pcBangShare: 37.82,
+                popularity: 98,
+                // 유튜브 공식 트레일러 / 게임플레이 임베드 ID
+                videoId: "aR-KAldshAE", 
+                thumbnailColor: "from-red-900/40 to-neutral-900",
+                icon: "fa-crown",
+                description: "전 세계에서 가장 많은 플레이어를 보유한 5대5 팀 기반 전략 AOS 게임입니다. 160여 명의 다양한 챔피언을 선택해 치열한 라인전과 한타 싸움을 통해 상대방의 넥서스를 파괴하세요."
+            },
+            {
+                rank: 2,
+                rankChange: 1,
+                title: "FC 온라인 (EA SPORTS FC Online)",
+                genre: "SPORTS",
+                company: "넥슨 코리아",
+                stockInfo: "넥슨 (3659.T) ▲2.80%",
+                pcBangShare: 11.45,
+                popularity: 91,
+                videoId: "XhP3Xh4LMA8",
+                thumbnailColor: "from-emerald-900/40 to-neutral-900",
+                icon: "fa-futbol",
+                description: "실제 축구 라이선스를 기반으로 현실감 넘치는 그래픽과 물리 엔진을 구현한 대한민국 대표 온라인 축구 게임입니다. 나만의 드림팀을 구성해 전 세계 유저들과 승부를 겨루세요."
+            },
+            {
+                rank: 3,
+                rankChange: -1,
+                title: "발로란트 (VALORANT)",
+                genre: "FPS",
+                company: "라이엇 게임즈",
+                stockInfo: "텐센트 (0700.HK) ▲1.95%",
+                pcBangShare: 9.64,
+                popularity: 94,
+                videoId: "e_E9W2vsRbQ",
+                thumbnailColor: "from-rose-900/40 to-neutral-900",
+                icon: "fa-crosshairs",
+                description: "정밀한 사격 감각과 요원별 고유 스킬이 결합된 5대5 전술 FPS 게임입니다. 10대 20대 유저층의 폭발적인 지지를 받으며 e스포츠와 PC방 점유율 최상위권을 유지하고 있습니다."
+            },
+            {
+                rank: 4,
+                rankChange: 0,
+                title: "배틀그라운드 (PUBG: BATTLEGROUNDS)",
+                genre: "FPS",
+                company: "크래프톤",
+                stockInfo: "크래프톤 (259960) ▲4.25%",
+                pcBangShare: 7.91,
+                popularity: 92,
+                videoId: "u1oqfdh4xBY",
+                thumbnailColor: "from-amber-900/40 to-neutral-900",
+                icon: "fa-parachute-box",
+                description: "최대 100명의 플레이어가 외딴 섬에 떨어져 각종 무기와 전략을 활용해 최후의 1인(또는 1팀)이 될 때까지 생존하는 배틀로얄 슈팅 게임의 원조입니다."
+            },
+            {
+                rank: 5,
+                rankChange: 2,
+                title: "로스트아크 (LOST ARK)",
+                genre: "RPG",
+                company: "스마일게이트 RPG",
+                stockInfo: "비상장 (스마일게이트)",
+                pcBangShare: 5.88,
+                popularity: 89,
+                videoId: "lV0wAh3_6-Y",
+                thumbnailColor: "from-purple-900/40 to-neutral-900",
+                icon: "fa-dragon",
+                description: "방대한 세계관과 압도적인 연출의 군단장 레이드, 화려한 핵앤슬래시 전투 액션을 자랑하는 대한민국 대표 블록버스터 쿼터뷰 MMORPG입니다."
+            },
+            {
+                rank: 6,
+                rankChange: -1,
+                title: "서든어택 (Sudden Attack)",
+                genre: "FPS",
+                company: "넥슨 게임즈",
+                stockInfo: "넥슨게임즈 (225570) ▲1.80%",
+                pcBangShare: 5.42,
+                popularity: 85,
+                videoId: "6v2L2UGZJAM",
+                thumbnailColor: "from-red-950/50 to-neutral-900",
+                icon: "fa-gun",
+                description: "빠른 템포의 교전과 직관적인 조작감으로 오랜 기간 사랑받아온 국민 FPS 게임입니다. 클랜전과 랭크전을 통해 짜릿한 슈팅의 쾌감을 경험할 수 있습니다."
+            },
+            {
+                rank: 7,
+                rankChange: 1,
+                title: "메이플스토리 (MapleStory)",
+                genre: "RPG",
+                company: "넥슨 코리아",
+                stockInfo: "넥슨 (3659.T) ▲2.80%",
+                pcBangShare: 4.15,
+                popularity: 86,
+                videoId: "r6p8X_p10pU",
+                thumbnailColor: "from-orange-900/40 to-neutral-900",
+                icon: "fa-hat-wizard",
+                description: "아기자기한 2D 횡스크롤 그래픽과 다채로운 직업군, 깊이 있는 캐릭터 육성의 재미를 갖춘 장수 인기 MMORPG입니다."
+            },
+            {
+                rank: 8,
+                rankChange: -2,
+                title: "오버워치 2 (Overwatch 2)",
+                genre: "FPS",
+                company: "블리자드 엔터테인먼트",
+                stockInfo: "마이크로소프트 (MSFT) ▲0.92%",
+                pcBangShare: 2.38,
+                popularity: 82,
+                videoId: "LGgqyer-qr4",
+                thumbnailColor: "from-sky-900/40 to-neutral-900",
+                icon: "fa-shield-halved",
+                description: "돌격, 공격, 지원 역할군의 개성 넘치는 영웅들을 선택해 팀워크를 발휘하는 5대5 하이퍼 FPS 슈팅 게임입니다."
+            },
+            {
+                rank: 9,
+                rankChange: 3,
+                title: "리니지M / 쓰론 앤 리버티 (TL)",
+                genre: "RPG",
+                company: "엔씨소프트",
+                stockInfo: "엔씨소프트 (036570) ▼1.15%",
+                pcBangShare: 1.75,
+                popularity: 79,
+                videoId: "9V6wL8B7z8A",
+                thumbnailColor: "from-indigo-900/40 to-neutral-900",
+                icon: "fa-chess-rook",
+                description: "대규모 공성전과 혈맹 중심의 치열한 세력 다툼, 그리고 심리스 오픈월드를 탐험하는 엔씨소프트의 대표 정통 MMORPG 시리즈입니다."
+            }
+        ];
 
-  <section id="contact" class="contact">
-    <h2>문의처</h2>
-    <p>서울대학교 KDT 과정 사무국</p>
-    <dl>
-      <dt>전화</dt><dd><a href="tel:031-5176-2304">031-5176-2304</a></dd>
-      <dt>이메일</dt><dd><a href="mailto:snufin99@gmail.com">snufin99@gmail.com</a></dd>
-      <dt>홈페이지</dt><dd><a href="https://www.snukdt.com" rel="noopener">www.snukdt.com</a></dd>
-    </dl>
-  </section>
-</main>
+        // DOM 요소 참조
+        const tickerContainer = document.getElementById('stock-ticker-content');
+        const gameGrid = document.getElementById('game-grid');
+        const emptyState = document.getElementById('empty-state');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const searchInput = document.getElementById('search-input');
+        
+        // 모달 관련 DOM 요소
+        const videoModal = document.getElementById('video-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalVideoFrame = document.getElementById('modal-video-frame');
 
-<footer>
-  <div class="wrap">
-    <p class="note">이 페이지는 「2026 서울대학교 빅데이터 AI 핀테크 고급 전문가 과정 14기」 포스터 내용을 바탕으로 만든 학습용 예시입니다. 최신 정보는 공식 홈페이지에서 확인하세요.</p>
-    <button class="theme" id="themeBtn" type="button">화면 모드 바꾸기</button>
-  </div>
-</footer>
+        // 현재 필터 상태
+        let currentGenre = 'ALL';
+        let currentSearch = '';
 
-<script>
-  // 1) 교육과정 탭 전환
-  var tabs = document.querySelectorAll('[role="tab"]');
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      tabs.forEach(function (t) {
-        var on = (t === tab);
-        t.setAttribute('aria-selected', on ? 'true' : 'false');
-        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-      });
-    });
-  });
+        // 1. 주가 전광판 렌더링 함수
+        function renderStockTicker() {
+            // 끊김 없는 흐름을 위해 데이터를 두 번 반복 배치
+            const combinedStocks = [...stockData, ...stockData];
+            
+            const tickerHTML = combinedStocks.map(stock => {
+                const colorClass = stock.isUp ? 'text-brand-red' : 'text-blue-400';
+                const arrow = stock.isUp ? '▲' : '▼';
+                return `
+                    <span class="inline-flex items-center mx-6">
+                        <span class="text-gray-300 font-bold mr-1.5">${stock.name}</span>
+                        <span class="text-white font-display tracking-wide mr-1.5">${stock.price}</span>
+                        <span class="${colorClass} text-xs font-bold">${arrow} ${stock.change.replace(/[+-]/, '')}</span>
+                        <span class="text-neutral-700 ml-6">|</span>
+                    </span>
+                `;
+            }).join('');
 
-  // 2) 모집일정: 오늘 날짜 기준으로 지난 단계 표시
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-  document.querySelectorAll('#timeline li').forEach(function (li) {
-    var end = new Date(li.dataset.end + 'T00:00:00');
-    if (end < today) {
-      li.classList.add('done');
-      var b = document.createElement('span');
-      b.className = 'badge';
-      b.textContent = '종료';
-      li.querySelector('.step').appendChild(b);
-    }
-  });
+            tickerContainer.innerHTML = tickerHTML;
+        }
 
-  // 3) 화면 모드(밝게/어둡게) 전환
-  document.getElementById('themeBtn').addEventListener('click', function () {
-    var root = document.documentElement;
-    var dark = root.getAttribute('data-theme') === 'dark' ||
-      (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.setAttribute('data-theme', dark ? 'light' : 'dark');
-  });
-</script>
+        // 2. 게임 카드 리스트 렌더링 함수
+        function renderGames() {
+            // 필터링 적용
+            const filteredGames = gamesData.filter(game => {
+                const matchesGenre = currentGenre === 'ALL' || game.genre === currentGenre;
+                const matchesSearch = game.title.toLowerCase().includes(currentSearch.toLowerCase()) || 
+                                      game.company.toLowerCase().includes(currentSearch.toLowerCase());
+                return matchesGenre && matchesSearch;
+            });
+
+            // 결과 없을 때 처리
+            if (filteredGames.length === 0) {
+                gameGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // 카드 HTML 생성
+            gameGrid.innerHTML = filteredGames.map(game => {
+                // 순위 변동 뱃지 처리
+                let rankBadge = `<span class="text-gray-500 text-xs font-medium">-</span>`;
+                if (game.rankChange > 0) {
+                    rankBadge = `<span class="text-brand-red text-xs font-bold"><i class="fa-solid fa-caret-up"></i> ${game.rankChange}</span>`;
+                } else if (game.rankChange < 0) {
+                    rankBadge = `<span class="text-blue-400 text-xs font-bold"><i class="fa-solid fa-caret-down"></i> ${Math.abs(game.rankChange)}</span>`;
+                }
+
+                // 1~3위 강조 스타일
+                const isTop3 = game.rank <= 3;
+                const rankColor = isTop3 ? 'bg-brand-red text-white' : 'bg-neutral-800 text-gray-300';
+
+                return `
+                    <div class="game-card bg-brand-card border border-brand-border rounded-2xl overflow-hidden flex flex-col justify-between cursor-pointer group" onclick="openGameModal(${game.rank})">
+                        <div>
+                            <!-- 상단 비주얼 배너 영역 -->
+                            <div class="relative h-36 bg-gradient-to-br ${game.thumbnailColor} p-5 flex flex-col justify-between border-b border-brand-border overflow-hidden">
+                                <!-- 배경 워터마크 아이콘 -->
+                                <i class="fa-solid ${game.icon} absolute -right-4 -bottom-4 text-8xl text-white/5 group-hover:scale-110 group-hover:text-brand-red/10 transition-all duration-500"></i>
+                                
+                                <div class="flex justify-between items-start z-10">
+                                    <!-- 순위 뱃지 -->
+                                    <div class="flex items-center gap-2">
+                                        <span class="${rankColor} font-display font-bold text-lg px-3 py-0.5 rounded-lg shadow">
+                                            ${game.rank}위
+                                        </span>
+                                        <div class="bg-black/60 backdrop-blur-sm px-2 py-1 rounded">
+                                            ${rankBadge}
+                                        </div>
+                                    </div>
+                                    <!-- 장르 태그 -->
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-black/70 text-white border border-white/10">
+                                        ${game.genre}
+                                    </span>
+                                </div>
+
+                                <!-- 재생 버튼 오버레이 힌트 -->
+                                <div class="z-10 flex items-center gap-2 text-xs font-bold text-white/80 group-hover:text-white transition">
+                                    <span class="w-7 h-7 rounded-full bg-brand-red flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                                        <i class="fa-solid fa-play text-[10px] ml-0.5"></i>
+                                    </span>
+                                    <span>플레이 영상 및 상세보기</span>
+                                </div>
+                            </div>
+
+                            <!-- 본문 정보 영역 -->
+                            <div class="p-5">
+                                <div class="text-xs text-gray-400 mb-1 flex justify-between items-center">
+                                    <span>${game.company}</span>
+                                </div>
+                                <h2 class="text-lg font-bold text-white group-hover:text-brand-red transition truncate">
+                                    ${game.title}
+                                </h2>
+
+                                <!-- PC방 점유율 및 인기도 게이지 -->
+                                <div class="mt-5 space-y-3.5">
+                                    <!-- PC방 점유율 -->
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-gray-400 font-medium"><i class="fa-solid fa-desktop mr-1 text-brand-red"></i>PC방 점유율</span>
+                                            <span class="font-display font-bold text-white text-sm">${game.pcBangShare.toFixed(2)}%</span>
+                                        </div>
+                                        <div class="w-full bg-neutral-800 rounded-full h-2 overflow-hidden">
+                                            <!-- 최대 점유율 40% 기준으로 시각적 게이지 비율 산출 -->
+                                            <div class="bg-brand-red h-2 rounded-full progress-bar-fill" style="width: ${Math.min((game.pcBangShare / 40) * 100, 100)}%"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 유저 인기도 지수 -->
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-gray-400 font-medium"><i class="fa-solid fa-heart mr-1 text-white"></i>유저 인기도</span>
+                                            <span class="font-display font-bold text-gray-200 text-sm">${game.popularity}점</span>
+                                        </div>
+                                        <div class="w-full bg-neutral-800 rounded-full h-1.5 overflow-hidden">
+                                            <div class="bg-white h-1.5 rounded-full progress-bar-fill" style="width: ${game.popularity}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 카드 하단 버튼 -->
+                        <div class="px-5 py-3.5 bg-neutral-900/60 border-t border-brand-border flex justify-between items-center">
+                            <span class="text-[11px] text-gray-400 truncate max-w-[60%]">${game.stockInfo}</span>
+                            <button class="text-xs font-bold text-white group-hover:text-brand-red flex items-center gap-1 transition">
+                                영상 보기 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 3. 모달 열기 함수 (플레이 영상 및 상세정보)
+        function openGameModal(rank) {
+            const game = gamesData.find(g => g.rank === rank);
+            if (!game) return;
+
+            document.getElementById('modal-rank').textContent = `${game.rank}위`;
+            document.getElementById('modal-title').textContent = game.title;
+            document.getElementById('modal-genre').textContent = game.genre;
+            document.getElementById('modal-share').textContent = `${game.pcBangShare.toFixed(2)}%`;
+            document.getElementById('modal-popularity').textContent = `${game.popularity} / 100`;
+            document.getElementById('modal-company').textContent = game.company;
+            document.getElementById('modal-stock').textContent = game.stockInfo;
+            document.getElementById('modal-desc').textContent = game.description;
+
+            // 유튜브 영상 자동재생 임베드 설정
+            modalVideoFrame.src = `https://www.youtube.com/embed/${game.videoId}?autoplay=1&rel=0`;
+
+            videoModal.classList.remove('hidden');
+            videoModal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        }
+
+        // 4. 모달 닫기 함수
+        function closeGameModal() {
+            videoModal.classList.add('hidden');
+            videoModal.classList.remove('flex');
+            modalVideoFrame.src = ''; // 영상 정지
+            document.body.style.overflow = 'auto';
+        }
+
+        // 이벤트 리스너 등록
+        // 장르 필터 버튼 클릭 이벤트
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 버튼 스타일 초기화
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-brand-red', 'text-white', 'font-bold');
+                    b.classList.add('bg-brand-card', 'text-gray-300', 'font-medium');
+                });
+                // 선택된 버튼 강조
+                btn.classList.remove('bg-brand-card', 'text-gray-300', 'font-medium');
+                btn.classList.add('bg-brand-red', 'text-white', 'font-bold');
+
+                currentGenre = btn.getAttribute('data-genre');
+                renderGames();
+            });
+        });
+
+        // 검색 입력 이벤트
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value.trim();
+            renderGames();
+        });
+
+        // 모달 닫기 버튼 및 배경 클릭 이벤트
+        closeModalBtn.addEventListener('click', closeGameModal);
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                closeGameModal();
+            }
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) {
+                closeGameModal();
+            }
+        });
+
+        // 현재 날짜 표시 초기화
+        function setFormattedDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            document.getElementById('current-date').textContent = `${year}.${month}.${day} 기준`;
+        }
+
+        // 초기 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            setFormattedDate();
+            renderStockTicker();
+            renderGames();
+        });
+    </script>
 </body>
 </html>
