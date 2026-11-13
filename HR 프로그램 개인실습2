@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeopleHub - 통합 인사(HR) 관리 시스템</title>
+  <style>
+    :root {
+      --primary: #3B82F6;
+      --primary-light: #EFF6FF;
+      --primary-dark: #2563EB;
+      --accent-coral: #F97316;
+      --accent-amber: #F59E0B;
+      --bg-main: #FAFAFA;
+      --bg-card: #FFFFFF;
+      --text-main: #1E293B;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+
+      /* 상태 색상 */
+      --status-active-bg: #DCFCE7;
+      --status-active-text: #15803D;
+      --status-leave-bg: #DBEAFE;
+      --status-leave-text: #1D4ED8;
+      --status-pending-bg: #FEF3C7;
+      --status-pending-text: #B45309;
+      --status-inactive-bg: #F1F5F9;
+      --status-inactive-text: #475569;
+
+      /* 라운드 스퀘어 규격 */
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    /* 1. 상단 인사 공지 티커 (기존 stock-ticker 변형) */
+    .hr-ticker {
+      background: linear-gradient(90deg, #1E293B, #334155);
+      color: #FFFFFF;
+      font-size: 0.85rem;
+      padding: 8px 24px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ticker-badge {
+      background-color: var(--accent-coral);
+      color: white;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+    .hr-ticker ul {
+      list-style: none;
+      display: flex;
+      gap: 40px;
+      animation: tickerMove 25s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes tickerMove {
+      0% { transform: translateX(10%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* 2. 헤더 & 네비게이션 */
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+    .header-top {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    header h1 span {
+      color: var(--primary);
+    }
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 340px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-main);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--primary);
+      background-color: #FFF;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    nav {
+      max-width: 1320px;
+      margin: 16px auto 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      background-color: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    nav button:hover {
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+    nav button.active {
+      background-color: var(--primary);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* 3. 메인 컨테이너 & 공통 라운드 스퀘어 카드 */
+    main {
+      max-width: 1320px;
+      margin: 28px auto;
+      padding: 0 24px;
+      min-height: 72vh;
+    }
+    .tab-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .tab-section.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .card {
+      background-color: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* 상태 뱃지 스타일 */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .badge-active { background: var(--status-active-bg); color: var(--status-active-text); }
+    .badge-leave { background: var(--status-leave-bg); color: var(--status-leave-text); }
+    .badge-pending { background: var(--status-pending-bg); color: var(--status-pending-text); }
+    .badge-inactive { background: var(--status-inactive-bg); color: var(--status-inactive-text); }
+
+    /* 버튼 스타일 */
+    .btn {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: var(--primary-dark); }
+    .btn-accent { background-color: var(--accent-coral); color: white; }
+    .btn-accent:hover { background-color: #EA580C; }
+    .btn-outline {
+      background-color: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .btn-outline:hover { background-color: var(--bg-main); }
+
+    /* [탭 1] 인사정보 그리드 (기존 game-list / game-card 스타일 발전) */
+    .dept-filter {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .dept-chip {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: white;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .dept-chip.active {
+      background: var(--text-main);
+      color: white;
+      border-color: var(--text-main);
+    }
+
+    .employee-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+    .emp-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .emp-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    .emp-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .emp-profile {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .emp-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      background-color: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+    .emp-id {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .emp-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .emp-role {
+      font-size: 0.85rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .emp-info-list {
+      margin: 12px 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .emp-award-tag {
+      background: #FFFBEB;
+      color: #B45309;
+      border: 1px solid #FDE68A;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      margin-bottom: 14px;
+    }
+
+    /* [탭 2] 부서별 업무 및 연관 네트워크 */
+    .network-layout {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .network-layout { grid-template-columns: 1fr; }
+    }
+    .network-canvas-box {
+      position: relative;
+      background: #F8FAFC;
+      border-radius: var(--radius-md);
+      border: 1px dashed #CBD5E1;
+      height: 440px;
+      overflow: hidden;
+    }
+    .isolated-alert {
+      background-color: #FFF7ED;
+      border: 1px solid #FDBA74;
+      color: #9A3412;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    .manual-upload-box {
+      border: 2px dashed #CBD5E1;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      background: var(--bg-main);
+      margin-bottom: 16px;
+    }
+    .manual-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .manual-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-main);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 0.86rem;
+    }
+
+    /* [탭 3] 인사평가 및 발령 안내 */
+    .eval-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 860px) {
+      .eval-grid { grid-template-columns: 1fr; }
+    }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      background-color: var(--bg-main);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #E2E8F0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 999px;
+    }
+
+    /* [탭 4] 건의 및 문의사항 (민원 게시판 형태) */
+    .voc-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .voc-layout { grid-template-columns: 1fr; }
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      background: #FFF;
+    }
+    textarea.form-control {
+      min-height: 110px;
+      resize: vertical;
+    }
+    .voc-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .voc-post {
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      background: #FFF;
+    }
+    .voc-post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .cat-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .cat-suggest { background: #EFF6FF; color: #2563EB; }
+    .cat-inquiry { background: #FFF7ED; color: #EA580C; }
+    .cat-praise { background: #F0FDF4; color: #16A34A; }
+
+    /* 상세 모달 (기존 video-modal 변형) */
+    .hr-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .hr-modal.open {
+      display: flex;
+    }
+    .modal-content {
+      background: #FFF;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 680px;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 28px;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg-main);
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .modal-subtabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      margin: 18px 0;
+    }
+    .salary-box {
+      background: var(--bg-main);
+      padding: 18px;
+      border-radius: var(--radius-md);
+      margin-top: 12px;
+    }
+    .salary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+      font-size: 0.92rem;
+    }
+    .salary-total {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 12px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 28px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 48px;
+      background: #FFF;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 인사 공지 티커 -->
+  <div class="hr-ticker">
+    <span class="ticker-badge">HR 안내</span>
+    <ul>
+      <li>[공지] 2026년 하반기 정기 인사평가 및 역량 진단 기간 안내 (11.15 ~ 11.30)</li>
+      <li>[발령] 2026년 11월부 수시 조직개편 및 부서 이동 발령 결과가 공지되었습니다.</li>
+      <li>[급여] 2026년 11월 급여명세서 조회가 오픈되었습니다. 인사정보 > 개인 상세에서 확인하세요.</li>
+      <li>[알림] 감사실(내부감사팀)은 독립성 유지를 위해 타 부서 업무 연관 네트워크에서 분리 운영됩니다.</li>
+    </ul>
+  </div>
+
+  <!-- 헤더 영역 -->
+  <header>
+    <div class="header-top">
+      <div class="logo-area">
+        <div class="logo-icon">HR</div>
+        <h1>People<span>Hub</span> 인사관리시스템</h1>
+      </div>
+      <div class="search-box">
+        <input type="text" id="globalSearch" placeholder="임직원 성명, 사번, 부서명 검색..." onkeyup="filterEmployees()">
+      </div>
+      <div>
+        <span class="badge badge-pending">결재 대기 2건</span>
+      </div>
+    </div>
+    <nav>
+      <button class="active" onclick="switchTab('tab-info', this)">1. 인사정보 (개인/급여/이력)</button>
+      <button onclick="switchTab('tab-network', this)">2. 부서별 업무 및 연관</button>
+      <button onclick="switchTab('tab-eval', this)">3. 인사평가 및 발령 안내</button>
+      <button onclick="switchTab('tab-voc', this)">4. 건의 및 문의사항</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ==========================================
+         TAB 1: 인사정보
+    =========================================== -->
+    <section id="tab-info" class="tab-section active">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">임직원 인사정보 관리</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">카드를 클릭하면 개인별 급여명세서(세전/세후) 및 부서이동 이력을 확인할 수 있습니다.</p>
+        </div>
+        <div class="dept-filter" id="deptFilterGroup">
+          <button class="dept-chip active" onclick="setDeptFilter('전체', this)">전체 부서</button>
+          <button class="dept-chip" onclick="setDeptFilter('경영지원본부', this)">경영지원본부</button>
+          <button class="dept-chip" onclick="setDeptFilter('인사총무팀', this)">인사총무팀</button>
+          <button class="dept-chip" onclick="setDeptFilter('연구개발본부', this)">연구개발본부</button>
+          <button class="dept-chip" onclick="setDeptFilter('영업마케팅본부', this)">영업마케팅본부</button>
+          <button class="dept-chip" onclick="setDeptFilter('생산품질본부', this)">생산품질본부</button>
+          <button class="dept-chip" onclick="setDeptFilter('내부감사팀', this)">내부감사팀</button>
+        </div>
+      </div>
+
+      <div class="employee-grid" id="employeeGrid">
+        <!-- JS로 임직원 카드 렌더링 -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 2: 부서별 업무 및 연관
+    =========================================== -->
+    <section id="tab-network" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">부서별 업무 연관도 & 직무 매뉴얼</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">기업 조직 구조를 기반으로 부서 간 협업 연관도를 시각화하고 개인별 업무 매뉴얼을 관리합니다.</p>
+        </div>
+      </div>
+
+      <!-- 연관 없는 부서 필수 표시 알림 -->
+      <div class="isolated-alert">
+        <span>⚠️ [독립 부서 표시]</span>
+        <span><strong>내부감사팀 (이준호 감사역)</strong>은 직무 독립성 보장을 위해 타 부서와 업무 연관선이 연결되지 않은 <strong>연관 없음(독립) 부서</strong>입니다.</span>
+      </div>
+
+      <div class="network-layout">
+        <!-- 좌측: 네트워크 다이어그램 -->
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size:1.05rem;">조직 업무 연관 네트워크 다이어그램 (기본 연관도)</h3>
+            <span style="font-size:0.8rem; color:var(--text-muted);">노드를 클릭하면 담당자 업무가 표시됩니다</span>
+          </div>
+          <div class="network-canvas-box">
+            <svg id="networkSvg" width="100%" height="100%" viewBox="0 0 700 440"></svg>
+          </div>
+          <div id="nodeDetailBox" style="margin-top:14px; padding:14px; background:var(--primary-light); border-radius:var(--radius-md); font-size:0.9rem;">
+            💡 다이어그램의 <strong>부서/담당자 노드</strong>를 클릭하면 해당 부서의 핵심 연관 업무를 확인할 수 있습니다.
+          </div>
+        </div>
+
+        <!-- 우측: 부서/개인별 업무 매뉴얼 업로드 -->
+        <div class="card">
+          <h3 style="font-size:1.05rem; margin-bottom:12px;">부서별 개인 업무 매뉴얼 업로드</h3>
+          <div class="manual-upload-box">
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:10px;">개인별 직무 기술서 및 인수인계 매뉴얼(PDF, DOCX, XLSX) 등록</p>
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;">
+              <select id="manualDeptSelect" class="form-control" style="width:auto;">
+                <option value="인사총무팀 - 김서연">인사총무팀 - 김서연</option>
+                <option value="연구개발본부 - 박지훈">연구개발본부 - 박지훈</option>
+                <option value="영업마케팅본부 - 최유진">영업마케팅본부 - 최유진</option>
+                <option value="생산품질본부 - 정민수">생산품질본부 - 정민수</option>
+                <option value="경영지원본부 - 한지민">경영지원본부 - 한지민</option>
+                <option value="내부감사팀 - 이준호">내부감사팀 - 이준호</option>
+              </select>
+              <input type="file" id="manualFileInput" style="font-size:0.85rem;">
+            </div>
+            <button class="btn btn-primary" onclick="uploadManual()">매뉴얼 업로드 등록</button>
+          </div>
+
+          <h4 style="font-size:0.92rem; margin-bottom:10px;">등록된 업무 매뉴얼 목록</h4>
+          <div class="manual-list" id="manualList">
+            <!-- JS 렌더링 -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 3: 인사평가 및 발령 안내
+    =========================================== -->
+    <section id="tab-eval" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">인사평가 및 인사발령 안내</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">평가 항목 기준과 개인별 평가 결과, 최근 인사발령 공고를 투명하게 안내합니다.</p>
+        </div>
+      </div>
+
+      <div class="eval-grid">
+        <!-- 1. 인사평가 항목 -->
+        <div class="card">
+          <h3 style="font-size:1.05rem; margin-bottom:14px;">1. 2026년 정기 인사평가 항목 및 가중치</h3>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600;">
+                <span>업적 평가 (KPI 달성도 및 프로젝트 기여)</span>
+                <span style="color:var(--primary);">50%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:50%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600;">
+                <span>역량 평가 (직무 전문성, 문제해결력, 협업 태도)</span>
+                <span style="color:var(--primary);">30%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:30%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600;">
+                <span>다면 평가 (동료 및 유관부서 피드백)</span>
+                <span style="color:var(--accent-coral);">20%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:20%; background:var(--accent-coral);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 인사평가 결과(개인) -->
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:1.05rem;">2. 개인 인사평가 결과 조회</h3>
+            <select id="evalEmpSelect" class="form-control" style="width:auto;" onchange="renderEvalResult()">
+              <!-- JS 옵션 추가 -->
+            </select>
+          </div>
+          <div id="personalEvalBox" style="background:var(--bg-main); padding:18px; border-radius:var(--radius-md);">
+            <!-- JS 렌더링 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 인사발령 결과 -->
+      <div class="card">
+        <h3 style="font-size:1.05rem; margin-bottom:14px;">3. 최근 인사발령 결과 안내</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>발령일자</th>
+                <th>성명 (사번)</th>
+                <th>발령구분</th>
+                <th>이전 소속/직책</th>
+                <th>발령 후 소속/직책</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2026-11-01</td>
+                <td><strong>김서연</strong> (EMP-202301)</td>
+                <td><span class="badge badge-active">승진/보직</span></td>
+                <td>인사총무팀 / 주임</td>
+                <td>인사총무팀 / 대리 (HR기획파트)</td>
+                <td>정기 승진 발령</td>
+              </tr>
+              <tr>
+                <td>2026-10-15</td>
+                <td><strong>박지훈</strong> (EMP-202104)</td>
+                <td><span class="badge badge-leave">부서이동</span></td>
+                <td>생산품질본부 / 선임연구원</td>
+                <td>연구개발본부 / 책임연구원</td>
+                <td>신규 플랫폼 TF 합류</td>
+              </tr>
+              <tr>
+                <td>2026-10-01</td>
+                <td><strong>최유진</strong> (EMP-202209)</td>
+                <td><span class="badge badge-pending">파견/겸직</span></td>
+                <td>영업마케팅본부 / 과장</td>
+                <td>영업마케팅본부 / 전략영업팀장 겸직</td>
+                <td>하반기 매출 확대 TF</td>
+              </tr>
+              <tr>
+                <td>2026-09-01</td>
+                <td><strong>정민수</strong> (EMP-202011)</td>
+                <td><span class="badge badge-inactive">휴직발령</span></td>
+                <td>생산품질본부 / 과장</td>
+                <td>생산품질본부 / 과장 (육아휴직)</td>
+                <td>2026.09.01 ~ 2027.02.28</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 4: 건의 및 문의사항
+    =========================================== -->
+    <section id="tab-voc" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">임직원 건의 및 문의사항 (HR 민원 창구)</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">건의사항, 인사/급여 문의, 동료 칭찬하기를 민원 형식으로 접수하고 증빙 파일을 첨부할 수 있습니다.</p>
+        </div>
+      </div>
+
+      <div class="voc-layout">
+        <!-- 민원 작성 폼 -->
+        <div class="card">
+          <h3 style="font-size:1.05rem; margin-bottom:14px;">새 민원 / 게시글 접수</h3>
+          <div class="form-group">
+            <label>접수 분류 선택</label>
+            <select id="vocCategory" class="form-control">
+              <option value="건의사항">💡 건의사항 (제도/복지/환경 개선)</option>
+              <option value="문의사항">❓ 문의사항 (급여/근태/증명서/평가)</option>
+              <option value="칭찬합니다">👏 칭찬합니다 (이달의 동료 추천)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>작성자 (익명 체크 가능)</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="text" id="vocAuthor" class="form-control" value="김서연 (인사총무팀)">
+              <label style="display:flex; align-items:center; gap:4px; white-space:nowrap; font-weight:400; margin:0;">
+                <input type="checkbox" id="vocAnon"> 익명접수
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>제목</label>
+            <input type="text" id="vocTitle" class="form-control" placeholder="민원 또는 칭찬 제목을 입력하세요">
+          </div>
+          <div class="form-group">
+            <label>상세 내용</label>
+            <textarea id="vocContent" class="form-control" placeholder="구체적인 내용을 작성해 주세요."></textarea>
+          </div>
+          <div class="form-group">
+            <label>증빙 및 참고 파일 첨부</label>
+            <input type="file" id="vocFile" class="form-control">
+          </div>
+          <button class="btn btn-accent" style="width:100%; justify-content:center;" onclick="submitVoc()">민원 접수 등록하기</button>
+        </div>
+
+        <!-- 접수 현황 리스트 -->
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <h3 style="font-size:1.05rem;">접수된 민원 및 칭찬 현황</h3>
+            <div class="voc-tabs">
+              <button class="dept-chip active" onclick="filterVoc('전체', this)">전체</button>
+              <button class="dept-chip" onclick="filterVoc('건의사항', this)">건의사항</button>
+              <button class="dept-chip" onclick="filterVoc('문의사항', this)">문의사항</button>
+              <button class="dept-chip" onclick="filterVoc('칭찬합니다', this)">칭찬합니다</button>
+            </div>
+          </div>
+          <div id="vocList">
+            <!-- JS 렌더링 -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================
+       임직원 상세 정보 모달 (개인정보 / 급여명세서 / 부서이동 이력)
+  =========================================== -->
+  <div class="hr-modal" id="empModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">✕</button>
+      <div id="modalHeaderArea"></div>
+
+      <div class="modal-subtabs">
+        <button class="btn btn-primary" id="mTab1" onclick="switchModalSub('info')">기본 인사 및 수상내역</button>
+        <button class="btn btn-outline" id="mTab2" onclick="switchModalSub('salary')">급여 조회 (세전/세후)</button>
+        <button class="btn btn-outline" id="mTab3" onclick="switchModalSub('history')">부서이동 이력</button>
+      </div>
+
+      <div id="modalBodyArea"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 PeopleHub HR Management System. 개인 실습 및 바이브코딩 포트폴리오 프로젝트.</p>
+  </footer>
+
+  <script>
+    // ==========================================
+    // 1. 샘플 데이터 구성 (기업 기본 조직 구조 반영)
+    // ==========================================
+    const employees = [
+      {
+        id: "EMP-202301",
+        name: "김서연",
+        dept: "인사총무팀",
+        position: "대리",
+        status: "재직중",
+        statusClass: "badge-active",
+        phone: "010-2345-6789",
+        address: "서울특별시 송파구 올림픽로 300",
+        awards: ["2025년 하반기 우수 사원상", "HR 프로세스 개선 공로상"],
+        photoText: "서연",
+        salary: {
+          "2026년 11월": { base: 3800000, bonus: 400000, meal: 200000, tax: 485000, insurance: 395000 },
+          "2026년 10월": { base: 3800000, bonus: 0, meal: 200000, tax: 410000, insurance: 395000 },
+          "2026년 09월": { base: 3800000, bonus: 500000, meal: 200000, tax: 510000, insurance: 395000 }
+        },
+        history: [
+          { date: "2026-11-01", from: "인사총무팀 (주임)", to: "인사총무팀 HR기획파트 (대리)", reason: "정기 승진" },
+          { date: "2023-03-02", from: "신규입사", to: "인사총무팀 (사원)", reason: "공개채용 입사" }
+        ],
+        eval: { grade: "S (96점)", kpi: 49, competency: 28, peer: 19, comment: "채용 및 평가 시스템 고도화에 핵심적인 역할을 수행함." }
+      },
+      {
+        id: "EMP-202104",
+        name: "박지훈",
+        dept: "연구개발본부",
+        position: "책임연구원",
+        status: "재직중",
+        statusClass: "badge-active",
+        phone: "010-9876-5432",
+        address: "경기도 성남시 분당구 판교역로 166",
+        awards: ["2026년 1분기 특허 출원 우수상"],
+        photoText: "지훈",
+        salary: {
+          "2026년 11월": { base: 5200000, bonus: 600000, meal: 200000, tax: 740000, insurance: 540000 },
+          "2026년 10월": { base: 5200000, bonus: 0, meal: 200000, tax: 620000, insurance: 540000 }
+        },
+        history: [
+          { date: "2026-10-15", from: "생산품질본부 선행기술팀", to: "연구개발본부 플랫폼개발팀", reason: "신규 프로젝트 발령" },
+          { date: "2021-07-01", from: "신규입사", to: "생산품질본부 선행기술팀", reason: "경력직 입사" }
+        ],
+        eval: { grade: "A (91점)", kpi: 46, competency: 27, peer: 18, comment: "신규 아키텍처 설계 안정성이 뛰어나며 팀 내 기술 리딩이 우수함." }
+      },
+      {
+        id: "EMP-202209",
+        name: "최유진",
+        dept: "영업마케팅본부",
+        position: "과장",
+        status: "휴가중",
+        statusClass: "badge-leave",
+        phone: "010-5555-1212",
+        address: "서울특별시 강남구 테헤란로 152",
+        awards: ["2025년 연간 영업 목표 130% 달성상"],
+        photoText: "유진",
+        salary: {
+          "2026년 11월": { base: 4600000, bonus: 800000, meal: 200000, tax: 690000, insurance: 480000 },
+          "2026년 10월": { base: 4600000, bonus: 300000, meal: 200000, tax: 590000, insurance: 480000 }
+        },
+        history: [
+          { date: "2026-10-01", from: "영업마케팅본부 B2B영업팀", to: "영업마케팅본부 전략영업팀장(겸직)", reason: "조직 개편" },
+          { date: "2022-09-01", from: "신규입사", to: "영업마케팅본부 B2B영업팀", reason: "입사" }
+        ],
+        eval: { grade: "S (95점)", kpi: 49, competency: 28, peer: 18, comment: "주요 대형 고객사 수주 성공으로 분기 목표 초과 달성." }
+      },
+      {
+        id: "EMP-202011",
+        name: "정민수",
+        dept: "생산품질본부",
+        position: "과장",
+        status: "휴직",
+        statusClass: "badge-inactive",
+        phone: "010-3344-7788",
+        address: "충청북도 충주시 첨단산업로 45",
+        awards: ["2024년 무재해 공정 관리 표창"],
+        photoText: "민수",
+        salary: {
+          "2026년 11월": { base: 2200000, bonus: 0, meal: 0, tax: 120000, insurance: 180000 },
+          "2026년 08월": { base: 4500000, bonus: 0, meal: 200000, tax: 530000, insurance: 460000 }
+        },
+        history: [
+          { date: "2026-09-01", from: "생산품질본부 품질보증팀", to: "육아휴직", reason: "법정 육아휴직" },
+          { date: "2020-11-01", from: "신규입사", to: "생산품질본부 생산관리팀", reason: "입사" }
+        ],
+        eval: { grade: "B+ (85점)", kpi: 42, competency: 26, peer: 17, comment: "휴직 전 공정 불량률 1.2% 개선에 기여함." }
+      },
+      {
+        id: "EMP-201905",
+        name: "한지민",
+        dept: "경영지원본부",
+        position: "차장",
+        status: "결재 대기",
+        statusClass: "badge-pending",
+        phone: "010-7777-8899",
+        address: "서울특별시 마포구 월드컵북로 396",
+        awards: ["2025년 재무 건전성 우수 표창"],
+        photoText: "지민",
+        salary: {
+          "2026년 11월": { base: 5500000, bonus: 400000, meal: 200000, tax: 780000, insurance: 570000 },
+          "2026년 10월": { base: 5500000, bonus: 0, meal: 200000, tax: 690000, insurance: 570000 }
+        },
+        history: [
+          { date: "2024-03-01", from: "경영지원본부 회계팀 (과장)", to: "경영지원본부 재무기획팀 (차장)", reason: "정기 승진" }
+        ],
+        eval: { grade: "A (90점)", kpi: 45, competency: 27, peer: 18, comment: "전사 예산 효율화 및 결산 프로세스 단축." }
+      },
+      {
+        id: "EMP-201802",
+        name: "이준호",
+        dept: "내부감사팀",
+        position: "수석감사역",
+        status: "재직중",
+        statusClass: "badge-active",
+        phone: "010-1122-3344",
+        address: "서울특별시 영등포구 여의대로 108",
+        awards: ["2025년 윤리경영 최우수상"],
+        photoText: "준호",
+        salary: {
+          "2026년 11월": { base: 5800000, bonus: 0, meal: 200000, tax: 760000, insurance: 600000 },
+          "2026년 10월": { base: 5800000, bonus: 0, meal: 200000, tax: 760000, insurance: 600000 }
+        },
+        history: [
+          { date: "2022-01-01", from: "외부 영입", to: "내부감사팀 (직속 독립기구)", reason: "준법감시 총괄 영입" }
+        ],
+        eval: { grade: "A (92점)", kpi: 46, competency: 28, peer: 18, comment: "독립적 내부 통제 및 리스크 사전 예방 감사 수행." }
+      }
+    ];
+
+    let currentDeptFilter = "전체";
+    let selectedEmp = null;
+    let currentModalTab = "info";
+
+    // ==========================================
+    // 2. 메인 탭 전환 로직
+    // ==========================================
+    function switchTab(tabId, btnEl) {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      if (tabId === 'tab-network') drawNetworkDiagram();
+    }
+
+    // ==========================================
+    // 3. TAB 1: 인사정보 렌더링 & 필터
+    // ==========================================
+    function setDeptFilter(dept, btnEl) {
+      currentDeptFilter = dept;
+      document.querySelectorAll('#deptFilterGroup .dept-chip').forEach(c => c.classList.remove('active'));
+      btnEl.classList.add('active');
+      renderEmployees();
+    }
+
+    function filterEmployees() {
+      renderEmployees();
+    }
+
+    function renderEmployees() {
+      const grid = document.getElementById('employeeGrid');
+      const keyword = document.getElementById('globalSearch').value.trim().toLowerCase();
+
+      const filtered = employees.filter(emp => {
+        const matchDept = currentDeptFilter === "전체" || emp.dept === currentDeptFilter;
+        const matchKeyword = emp.name.toLowerCase().includes(keyword) ||
+                             emp.id.toLowerCase().includes(keyword) ||
+                             emp.dept.toLowerCase().includes(keyword);
+        return matchDept && matchKeyword;
+      });
+
+      grid.innerHTML = filtered.map(emp => `
+        <article class="emp-card">
+          <div>
+            <div class="emp-top">
+              <div class="emp-profile">
+                <div class="emp-avatar">${emp.photoText}</div>
+                <div>
+                  <div class="emp-id">${emp.id}</div>
+                  <div class="emp-name">${emp.name} <span style="font-size:0.85rem; font-weight:500; color:var(--text-muted);">${emp.position}</span></div>
+                  <div class="emp-role">${emp.dept}</div>
+                </div>
+              </div>
+              <span class="badge ${emp.statusClass}">${emp.status}</span>
+            </div>
+            <div class="emp-info-list">
+              <div>📞 ${emp.phone}</div>
+              <div>📍 ${emp.address}</div>
+            </div>
+            <div class="emp-award-tag">
+              🏆 ${emp.awards[0]}
+            </div>
+          </div>
+          <button class="btn btn-outline" style="width:100%; justify-content:center;" onclick="openEmpModal('${emp.id}')">
+            개인 상세 / 급여 / 이동이력 보기
+          </button>
+        </article>
+      `).join('');
+    }
+
+    // ==========================================
+    // 4. 상세 모달 (개인정보 / 급여 세전세후 / 이동이력)
+    // ==========================================
+    function openEmpModal(empId) {
+      selectedEmp = employees.find(e => e.id === empId);
+      currentModalTab = "info";
+      document.getElementById('empModal').classList.add('open');
+      renderModalHeader();
+      renderModalBody();
+    }
+
+    function closeModal() {
+      document.getElementById('empModal').classList.remove('open');
+    }
+
+    function renderModalHeader() {
+      document.getElementById('modalHeaderArea').innerHTML = `
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div class="emp-avatar" style="width:64px; height:64px; font-size:1.4rem;">${selectedEmp.photoText}</div>
+          <div>
+            <span class="badge ${selectedEmp.statusClass}" style="margin-bottom:4px;">${selectedEmp.status}</span>
+            <h3 style="font-size:1.3rem;">${selectedEmp.name} ${selectedEmp.position} <span style="font-size:0.9rem; color:var(--text-muted);">(${selectedEmp.id})</span></h3>
+            <p style="color:var(--primary); font-weight:600; font-size:0.92rem;">${selectedEmp.dept}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function switchModalSub(tab) {
+      currentModalTab = tab;
+      document.getElementById('mTab1').className = tab === 'info' ? 'btn btn-primary' : 'btn btn-outline';
+      document.getElementById('mTab2').className = tab === 'salary' ? 'btn btn-primary' : 'btn btn-outline';
+      document.getElementById('mTab3').className = tab === 'history' ? 'btn btn-primary' : 'btn btn-outline';
+      renderModalBody();
+    }
+
+    function renderModalBody() {
+      const body = document.getElementById('modalBodyArea');
+
+      if (currentModalTab === 'info') {
+        body.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:12px; font-size:0.95rem;">
+            <div style="padding:14px; background:var(--bg-main); border-radius:var(--radius-md);">
+              <strong>연락처:</strong> ${selectedEmp.phone}<br>
+              <strong>거주지 주소:</strong> ${selectedEmp.address}
+            </div>
+            <div>
+              <h4 style="margin-bottom:8px;">🏆 사내 수상 내역</h4>
+              <ul style="padding-left:20px; color:var(--text-main);">
+                ${selectedEmp.awards.map(a => `<li style="margin-bottom:4px;">${a}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      } else if (currentModalTab === 'salary') {
+        const months = Object.keys(selectedEmp.salary);
+        body.innerHTML = `
+          <div>
+            <label style="font-size:0.88rem; font-weight:600; display:block; margin-bottom:6px;">조회 연월 선택 (0000년 00월 형식)</label>
+            <select id="salaryMonthSelect" class="form-control" onchange="updateSalaryDetail()">
+              ${months.map(m => `<option value="${m}">${m} 급여명세서</option>`).join('')}
+            </select>
+            <div id="salaryDetailContainer"></div>
+          </div>
+        `;
+        updateSalaryDetail();
+      } else if (currentModalTab === 'history') {
+        body.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>발령일자</th>
+                <th>이전 소속</th>
+                <th>변경 소속</th>
+                <th>발령 사유</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${selectedEmp.history.map(h => `
+                <tr>
+                  <td>${h.date}</td>
+                  <td>${h.from}</td>
+                  <td><strong>${h.to}</strong></td>
+                  <td>${h.reason}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    function updateSalaryDetail() {
+      const month = document.getElementById('salaryMonthSelect').value;
+      const s = selectedEmp.salary[month];
+      const gross = s.base + s.bonus + s.meal; // 세전 총액
+      const deduct = s.tax + s.insurance;      // 공제 합계
+      const net = gross - deduct;              // 세후 실수령액
+
+      document.getElementById('salaryDetailContainer').innerHTML = `
+        <div class="salary-box">
+          <div style="font-weight:700; margin-bottom:8px; color:var(--text-main);">[세전 지급 내역]</div>
+          <div class="salary-row"><span>기본급</span><span>${s.base.toLocaleString()} 원</span></div>
+          <div class="salary-row"><span>상여/성과수당</span><span>${s.bonus.toLocaleString()} 원</span></div>
+          <div class="salary-row"><span>식대(비과세)</span><span>${s.meal.toLocaleString()} 원</span></div>
+          <div class="salary-row" style="font-weight:700;"><span>세전 지급 총액</span><span>${gross.toLocaleString()} 원</span></div>
+
+          <div style="font-weight:700; margin:14px 0 8px; color:var(--accent-coral);">[공제 내역]</div>
+          <div class="salary-row"><span>소득세 및 지방소득세</span><span>-${s.tax.toLocaleString()} 원</span></div>
+          <div class="salary-row"><span>4대보험료 합계</span><span>-${s.insurance.toLocaleString()} 원</span></div>
+
+          <div class="salary-total">
+            <span>세후 실수령액</span>
+            <span>${net.toLocaleString()} 원</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 5. TAB 2: 부서별 업무 연관 네트워크 & 매뉴얼 업로드
+    // ==========================================
+    const nodes = [
+      { id: "경영지원본부", person: "한지민 차장", x: 320, y: 80, color: "#3B82F6", isolated: false, desc: "전사 예산 편성, 회계 결산 및 타 본부 운영 자금 지원 총괄" },
+      { id: "인사총무팀", person: "김서연 대리", x: 140, y: 190, color: "#3B82F6", isolated: false, desc: "채용, 급여 정산, 인사평가 운영 및 전사 총무/복지 지원" },
+      { id: "연구개발본부", person: "박지훈 책임", x: 320, y: 230, color: "#3B82F6", isolated: false, desc: "신제품 및 플랫폼 기술 개발, 생산본부 기술 이관 및 영업 기술지원" },
+      { id: "영업마케팅본부", person: "최유진 과장", x: 160, y: 350, color: "#3B82F6", isolated: false, desc: "고객사 수주, 시장 분석 및 연구개발본부에 고객 요구사항 전달" },
+      { id: "생산품질본부", person: "정민수 과장", x: 460, y: 350, color: "#3B82F6", isolated: false, desc: "양산 공정 관리, 품질 보증 및 영업 납기 일정 조율" },
+      { id: "내부감사팀", person: "이준호 감사역", x: 580, y: 120, color: "#F97316", isolated: true, desc: "[연관 없음 - 독립부서] 윤리경영 및 내부통제 독립 감사 수행 (타 부서와 업무 연관선 분리)" }
+    ];
+
+    const links = [
+      { source: "경영지원본부", target: "인사총무팀", label: "인건비/예산" },
+      { source: "경영지원본부", target: "연구개발본부", label: "R&D 투자" },
+      { source: "인사총무팀", target: "연구개발본부", label: "인력채용" },
+      { source: "인사총무팀", target: "영업마케팅본부", label: "성과보상" },
+      { source: "연구개발본부", target: "영업마케팅본부", label: "기술영업" },
+      { source: "연구개발본부", target: "생산품질본부", label: "양산이관" },
+      { source: "영업마케팅본부", target: "생산품질본부", label: "납기/수주" }
+    ];
+
+    function drawNetworkDiagram() {
+      const svg = document.getElementById('networkSvg');
+      let html = '';
+
+      // 연결선 그리기
+      links.forEach(l => {
+        const s = nodes.find(n => n.id === l.source);
+        const t = nodes.find(n => n.id === l.target);
+        const mx = (s.x + t.x) / 2;
+        const my = (s.y + t.y) / 2;
+        html += `
+          <line x1="${s.x}" y1="${s.y}" x2="${t.x}" y2="${t.y}" stroke="#94A3B8" stroke-width="2" />
+          <rect x="${mx - 28}" y="${my - 10}" width="56" height="20" rx="6" fill="#FFFFFF" stroke="#E2E8F0" />
+          <text x="${mx}" y="${my + 4}" text-anchor="middle" font-size="10" fill="#475569" font-weight="600">${l.label}</text>
+        `;
+      });
+
+      // 독립 부서 점선 구역 표시 (내부감사팀)
+      html += `
+        <rect x="495" y="45" width="170" height="145" rx="16" fill="#FFF7ED" stroke="#F97316" stroke-dasharray="5,5" />
+        <text x="580" y="65" text-anchor="middle" font-size="11" fill="#C2410C" font-weight="700">연관 없음 (독립 부서)</text>
+      `;
+
+      // 노드 그리기
+      nodes.forEach((n, idx) => {
+        html += `
+          <g style="cursor:pointer;" onclick="selectNetworkNode(${idx})">
+            <rect x="${n.x - 65}" y="${n.y - 28}" width="130" height="56" rx="14" fill="${n.color}" />
+            <text x="${n.x}" y="${n.y - 4}" text-anchor="middle" font-size="12" fill="#FFFFFF" font-weight="700">${n.id}</text>
+            <text x="${n.x}" y="${n.y + 14}" text-anchor="middle" font-size="11" fill="#E0F2FE">${n.person}</text>
+          </g>
+        `;
+      });
+
+      svg.innerHTML = html;
+    }
+
+    function selectNetworkNode(idx) {
+      const n = nodes[idx];
+      document.getElementById('nodeDetailBox').innerHTML = `
+        <strong>[${n.id} - ${n.person}]</strong><br>
+        ${n.desc}
+      `;
+    }
+
+    // 매뉴얼 업로드 기능
+    const manuals = [
+      { target: "인사총무팀 - 김서연", fileName: "2026_월간급여정산_및_4대보험_매뉴얼_v2.pdf", date: "2026-11-10" },
+      { target: "연구개발본부 - 박지훈", fileName: "신규플랫폼_배포_및_코드리뷰_가이드.docx", date: "2026-11-05" },
+      { target: "내부감사팀 - 이준호", fileName: "독립내부감사_체크리스트_표준안.xlsx", date: "2026-10-28" }
+    ];
+
+    function renderManuals() {
+      const list = document.getElementById('manualList');
+      list.innerHTML = manuals.map((m, i) => `
+        <div class="manual-item">
+          <div>
+            <div style="font-weight:700; color:var(--primary);">${m.target}</div>
+            <div>📄 ${m.fileName}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">등록일: ${m.date}</div>
+          </div>
+          <button class="btn btn-outline" style="padding:6px 10px; font-size:0.8rem;" onclick="alert('${m.fileName} 열람을 시작합니다.')">열람</button>
+        </div>
+      `).join('');
+    }
+
+    function uploadManual() {
+      const target = document.getElementById('manualDeptSelect').value;
+      const fileInput = document.getElementById('manualFileInput');
+      if (!fileInput.files.length) {
+        alert("업로드할 매뉴얼 파일을 선택해주세요.");
+        return;
+      }
+      const fileName = fileInput.files[0].name;
+      manuals.unshift({
+        target,
+        fileName,
+        date: new Date().toISOString().slice(0, 10)
+      });
+      fileInput.value = "";
+      renderManuals();
+      alert("개인 직무 매뉴얼이 성공적으로 등록되었습니다.");
+    }
+
+    // ==========================================
+    // 6. TAB 3: 개인 인사평가 결과 조회
+    // ==========================================
+    function initEvalSelect() {
+      const sel = document.getElementById('evalEmpSelect');
+      sel.innerHTML = employees.map(e => `<option value="${e.id}">${e.name} (${e.dept})</option>`).join('');
+      renderEvalResult();
+    }
+
+    function renderEvalResult() {
+      const id = document.getElementById('evalEmpSelect').value;
+      const emp = employees.find(e => e.id === id);
+      document.getElementById('personalEvalBox').innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <span style="font-size:0.85rem; color:var(--text-muted);">${emp.dept} / ${emp.position}</span>
+            <h4 style="font-size:1.15rem;">${emp.name} 님의 2026년 종합 평가 등급</h4>
+          </div>
+          <span style="background:var(--primary); color:white; padding:6px 16px; border-radius:var(--radius-sm); font-weight:800; font-size:1.1rem;">
+            ${emp.eval.grade}
+          </span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:12px; text-align:center;">
+          <div style="background:white; padding:10px; border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem; color:var(--text-muted);">업적평가(50)</div>
+            <strong>${emp.eval.kpi}점</strong>
+          </div>
+          <div style="background:white; padding:10px; border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem; color:var(--text-muted);">역량평가(30)</div>
+            <strong>${emp.eval.competency}점</strong>
+          </div>
+          <div style="background:white; padding:10px; border-radius:var(--radius-sm);">
+            <div style="font-size:0.8rem; color:var(--text-muted);">다면평가(20)</div>
+            <strong>${emp.eval.peer}점</strong>
+          </div>
+        </div>
+        <div style="font-size:0.9rem; color:var(--text-main); background:white; padding:12px; border-radius:var(--radius-sm);">
+          <strong>평가자 종합 코멘트:</strong> ${emp.eval.comment}
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 7. TAB 4: 건의 및 문의사항 (민원/칭찬)
+    // ==========================================
+    const vocPosts = [
+      {
+        category: "건의사항",
+        author: "익명",
+        title: "휴게 공간 안마의자 및 커피머신 추가 설치 건의",
+        content: "점심시간 및 오후 집중 근무 후 리프레시를 위해 3층 라운지 공간 확충을 건의합니다.",
+        file: "라운지_공간배치_참고안.pdf",
+        status: "검토중",
+        statusClass: "badge-pending",
+        date: "2026-11-12"
+      },
+      {
+        category: "문의사항",
+        author: "박지훈 (연구개발본부)",
+        title: "연말정산 대비 부양가족 공제 서류 제출 일정 문의",
+        content: "올해 부양가족 변동이 있는데 사내 시스템에 언제부터 증빙서류를 업로드하면 될까요?",
+        file: "",
+        status: "답변완료",
+        statusClass: "badge-active",
+        date: "2026-11-10"
+      },
+      {
+        category: "칭찬합니다",
+        author: "최유진 (영업마케팅본부)",
+        title: "긴급 고객사 제안서 작업 시 밤늦게까지 지원해준 연구개발본부 팀원들을 칭찬합니다!",
+        content: "촉박한 일정에도 불구하고 기술 시연 데모를 완벽하게 준비해주셔서 계약을 성사시킬 수 있었습니다.",
+        file: "감사카드_이미지.png",
+        status: "게시완료",
+        statusClass: "badge-leave",
+        date: "2026-11-08"
+      }
+    ];
+
+    let currentVocFilter = "전체";
+
+    function filterVoc(cat, btnEl) {
+      currentVocFilter = cat;
+      document.querySelectorAll('.voc-tabs .dept-chip').forEach(c => c.classList.remove('active'));
+      btnEl.classList.add('active');
+      renderVocList();
+    }
+
+    function renderVocList() {
+      const container = document.getElementById('vocList');
+      const filtered = vocPosts.filter(p => currentVocFilter === "전체" || p.category === currentVocFilter);
+
+      container.innerHTML = filtered.map(p => {
+        let catClass = "cat-suggest";
+        if (p.category === "문의사항") catClass = "cat-inquiry";
+        if (p.category === "칭찬합니다") catClass = "cat-praise";
+
+        return `
+          <div class="voc-post">
+            <div class="voc-post-header">
+              <div>
+                <span class="cat-tag ${catClass}">${p.category}</span>
+                <span style="font-size:0.82rem; color:var(--text-muted); margin-left:8px;">${p.author} · ${p.date}</span>
+              </div>
+              <span class="badge ${p.statusClass}">${p.status}</span>
+            </div>
+            <h4 style="font-size:0.98rem; margin-bottom:6px;">${p.title}</h4>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:8px;">${p.content}</p>
+            ${p.file ? `<div style="font-size:0.8rem; color:var(--primary); font-weight:600;">📎 첨부파일: ${p.file}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function submitVoc() {
+      const category = document.getElementById('vocCategory').value;
+      const isAnon = document.getElementById('vocAnon').checked;
+      const author = isAnon ? "익명" : (document.getElementById('vocAuthor').value || "임직원");
+      const title = document.getElementById('vocTitle').value.trim();
+      const content = document.getElementById('vocContent').value.trim();
+      const fileInput = document.getElementById('vocFile');
+
+      if (!title || !content) {
+        alert("제목과 상세 내용을 모두 입력해 주세요.");
+        return;
+      }
+
+      vocPosts.unshift({
+        category,
+        author,
+        title,
+        content,
+        file: fileInput.files.length ? fileInput.files[0].name : "",
+        status: category === "칭찬합니다" ? "게시완료" : "접수완료",
+        statusClass: category === "칭찬합니다" ? "badge-leave" : "badge-pending",
+        date: new Date().toISOString().slice(0, 10)
+      });
+
+      document.getElementById('vocTitle').value = "";
+      document.getElementById('vocContent').value = "";
+      fileInput.value = "";
+      renderVocList();
+      alert("민원/게시글이 정상적으로 접수되었습니다.");
+    }
+
+    // 초기 실행
+    renderEmployees();
+    renderManuals();
+    initEvalSelect();
+    renderVocList();
+  </script>
+</body>
+</html>
